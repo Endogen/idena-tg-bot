@@ -1,4 +1,5 @@
 import io
+import plotly
 import pandas as pd
 import plotly.io as pio
 import plotly.graph_objs as go
@@ -15,6 +16,10 @@ class Chart(IdenaPlugin):
 
     CGID = "idena"
     BASE = "btc"
+
+    def __enter__(self):
+        plotly.io.orca.ensure_server()
+        return self
 
     @IdenaPlugin.threaded
     @IdenaPlugin.send_typing
