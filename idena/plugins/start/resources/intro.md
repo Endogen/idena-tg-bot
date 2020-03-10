@@ -1,5 +1,8 @@
-✨ *IDENA Telegram Wallet Bot* ✨
+✨ *IDENA Telegram Bot* ✨
 
-Hey {{firstname}} welcome to your IDENA Telegram Wallet Bot! You can use this bot to manage your IDENA node, your identity or your DNA funds. This bot is the central hub to interact with the IDENA chain. 
+Hey {{firstname}} welcome to the IDENA Telegram Bot! You can use the following commands:
+
+/price
+/chart 
 
 Cheers 🍻👋
