@@ -16,7 +16,6 @@ class Chart(IdenaPlugin):
     CGID = "idena"
     BASE = "btc"
 
-    @IdenaPlugin.owner
     @IdenaPlugin.threaded
     @IdenaPlugin.send_typing
     def execute(self, bot, update, args):

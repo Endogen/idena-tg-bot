@@ -8,7 +8,6 @@ from idena.plugin import IdenaPlugin
 
 class Logfile(IdenaPlugin):
 
-    @IdenaPlugin.owner
     @IdenaPlugin.private
     @IdenaPlugin.threaded
     @IdenaPlugin.send_typing

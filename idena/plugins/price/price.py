@@ -8,15 +8,13 @@ from idena.plugin import IdenaPlugin
 
 class Price(IdenaPlugin):
 
+    BASE = "DNA"
     CG_ID = "idena"
     CG_URL = "https://www.coingecko.com/coins/idena"
 
-    @IdenaPlugin.owner
     @IdenaPlugin.threaded
     @IdenaPlugin.send_typing
     def execute(self, bot, update, args):
-        reply = "DNA price in BTC\n\n"
-
         try:
             result = CoinGeckoAPI().get_coin_ticker_by_id(self.CG_ID)
         except Exception as e:
@@ -26,15 +24,9 @@ class Price(IdenaPlugin):
             self.notify(e)
             return
 
-        for data in result["tickers"]:
-            base = data["base"]
-            target = data["target"]
-
-            if base == "DNA" and target == "BTC":
-                exchange = data["market"]["name"]
-                price = f"{data['last']:.8f}"
-
-                reply += f"{exchange:<10}{price}\n"
+        reply = "DNA price\n\n"
+        for target, price in result["tickers"][0]["converted_last"].items():
+            reply += f"{target.upper():<5}{price:.8f}\n"
 
         cg_link = f"\n[Details on CoinGecko]({self.CG_URL})"
 

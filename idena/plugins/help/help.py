@@ -6,7 +6,6 @@ from idena.plugin import IdenaPlugin
 
 class Help(IdenaPlugin):
 
-    @IdenaPlugin.owner
     @IdenaPlugin.threaded
     @IdenaPlugin.send_typing
     def execute(self, bot, update, args):
