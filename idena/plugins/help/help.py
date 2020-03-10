@@ -33,4 +33,5 @@ class Help(IdenaPlugin):
         update.message.reply_text(
             text=msg,
             parse_mode=ParseMode.MARKDOWN,
-            disable_web_page_preview=True)
+            disable_web_page_preview=True,
+            quote=False)

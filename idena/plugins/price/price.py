@@ -24,7 +24,7 @@ class Price(IdenaPlugin):
             self.notify(e)
             return
 
-        reply = "DNA price\n\n"
+        reply = "Price of DNA\n\n"
         for target, price in result["tickers"][0]["converted_last"].items():
             reply += f"{target.upper():<5}{price:.8f}\n"
 
@@ -33,4 +33,5 @@ class Price(IdenaPlugin):
         update.message.reply_text(
             text=f"`{reply}`{cg_link}",
             parse_mode=ParseMode.MARKDOWN,
-            disable_web_page_preview=True)
+            disable_web_page_preview=True,
+            quote=False)

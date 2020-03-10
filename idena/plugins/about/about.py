@@ -12,4 +12,5 @@ class About(IdenaPlugin):
         update.message.reply_text(
             text=self.get_resource(self.INFO_FILE),
             parse_mode=ParseMode.MARKDOWN,
-            disable_web_page_preview=True)
+            disable_web_page_preview=True,
+            quote=False)

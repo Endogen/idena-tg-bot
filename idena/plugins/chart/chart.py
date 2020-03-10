@@ -140,4 +140,6 @@ class Chart(IdenaPlugin):
 
         fig["layout"]["yaxis2"].update(tickformat=tickformat)
 
-        update.message.reply_photo(photo=io.BufferedReader(BytesIO(pio.to_image(fig, format="jpeg"))))
+        update.message.reply_photo(
+            photo=io.BufferedReader(BytesIO(pio.to_image(fig, format="jpeg"))),
+            quote=False)
