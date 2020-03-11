@@ -28,7 +28,7 @@ class Price(IdenaPlugin):
         for target, price in result["tickers"][0]["converted_last"].items():
             reply += f"{target.upper():<5}{price:.8f}\n"
 
-        cg_link = f"\n[Details on CoinGecko]({self.CG_URL})"
+        cg_link = f"\n[👉 https://idena.today 👈](https://idena.today)"
 
         update.message.reply_text(
             text=f"`{reply}`{cg_link}",
