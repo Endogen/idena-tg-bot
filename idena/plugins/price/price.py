@@ -1,3 +1,4 @@
+import idena.constants as con
 import idena.emoji as emo
 import logging
 
@@ -8,15 +9,11 @@ from idena.plugin import IdenaPlugin
 
 class Price(IdenaPlugin):
 
-    BASE = "DNA"
-    CG_ID = "idena"
-    CG_URL = "https://www.coingecko.com/coins/idena"
-
     @IdenaPlugin.threaded
     @IdenaPlugin.send_typing
     def execute(self, bot, update, args):
         try:
-            result = CoinGeckoAPI().get_coin_ticker_by_id(self.CG_ID)
+            result = CoinGeckoAPI().get_coin_ticker_by_id(con.CG_ID)
         except Exception as e:
             error = f"{emo.ERROR} Could not retrieve price"
             update.message.reply_text(error)
