@@ -1,5 +1,8 @@
 import os
 
+# IDENA specific
+CG_ID = "idena"
+
 # Project folders
 DIR_SRC = os.path.basename(os.path.dirname(__file__))
 DIR_RES = "resources"
