@@ -1,0 +1,14 @@
+{
+    "handle": "whale",
+    "interval": 60,
+    "limit": 10000,
+    "trx": 10,
+    "exchanges": {
+        "qTrade": "0x83B8A2F9Bd1bE7f1fB496ec91eB0C6983cD38725"
+    },
+    "api": "https://api.idena.io/api/address/",
+    "trx_url": "https://scan.idena.io/tx?tx=",
+    "send_to": [
+        134166731
+    ]
+}
