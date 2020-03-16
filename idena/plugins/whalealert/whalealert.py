@@ -1,10 +1,8 @@
 import logging
-import calendar
 import requests
 import idena.emoji as emo
 
 from random import randrange
-from datetime import datetime
 from telegram import ParseMode
 from idena.plugin import IdenaPlugin
 
@@ -12,28 +10,29 @@ from idena.plugin import IdenaPlugin
 class Whalealert(IdenaPlugin):
 
     def __enter__(self):
-        trx = self.config.get("trx")
-        api_url = self.config.get("api")
-        limit = self.config.get("limit")
-        trx_url = self.config.get("trx_url")
+        if not self.config.get("active"):
+            return self
+
+        tx_count = self.config.get("tx_count")
+        ad_url = self.config.get("ad_url")
+        threshold = self.config.get("threshold")
+        tx_url = self.config.get("tx_url")
         interval = self.config.get("interval")
         exchanges = self.config.get("exchanges")
-
-        # TODO: Change
-        # first=randrange(0, interval),
 
         for name, address in exchanges.items():
             self.repeat_job(
                 self.check,
                 interval,
+                first=randrange(0, interval),
                 context={
                     "name": name,
                     "address": address,
-                    "limit": limit,
-                    "interval": interval,
-                    "api": api_url,
-                    "trx_url": trx_url,
-                    "trx": trx
+                    "threshold": threshold,
+                    "api": ad_url,
+                    "trx_url": tx_url,
+                    "trx": tx_count,
+                    "last": None
                 })
 
         return self
@@ -42,100 +41,81 @@ class Whalealert(IdenaPlugin):
         url = job.context["api"]
         name = job.context["name"]
         steps = job.context["trx"]
-        limit = job.context["limit"]
-        trx_url = job.context["trx_url"]
+        tx_url = job.context["trx_url"]
         ex_addr = job.context["address"]
-        interval = job.context["interval"]
+        threshold = job.context["threshold"]
+        last_tx = job.context["last"]
 
         url += f"{ex_addr}/txs"
+        transactions = list()
 
         skip = 0
-        next = True
-        while next:
+        next_run = True
+
+        # Get all relevant transactions
+        while next_run:
             try:
                 response = requests.get(url, params={"skip": skip, "limit": steps}).json()
-                logging.info(f"Transactions: {response}")
+                logging.info(f"Transactions (skip={skip}, limit={steps}): {response}")
                 if not response or not response["result"]:
-                    logging.error("No result", job.context)
+                    msg = f"{emo.ERROR} No API result - {job.context}"
+                    logging.error(msg)
+                    self.notify(msg)
                     return
             except Exception as e:
-                msg = f"API not reachable: {e}"
+                msg = f"{emo.ERROR} API not reachable: {e} - {job.context}"
                 logging.error(msg)
+                self.notify(msg)
                 return
 
-            first_trx = True
-            for trx in reversed(response["result"]):
-                logging.info("--------------------")
-                logging.info(trx)
-
-                timestamp = trx["timestamp"]
-                amount = trx["amount"]
-                type = trx["type"]
-                from_addr = trx["from"]
-                to_addr = trx["to"]
-                hash = trx["hash"]
-
-                d = datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%SZ")
-                sec_trx = int(calendar.timegm(d.timetuple()))
-                sec_now = int((datetime.utcnow() - datetime(1970, 1, 1)).total_seconds())
-
-                logging.info(f"Timestamp   : {d}")
-                logging.info(f"DNA Amount  : {float(amount):.4f}")
-                logging.info(f"Millis Trx  : {sec_trx}")
-                logging.info(f"Millis Now  : {sec_now}")
-                logging.info(f"Difference  : {(sec_now - sec_trx)/60:.2f} Min.")
-
-                if sec_trx < (sec_now - interval):
-                    logging.info(f"In Timerange: {sec_trx < (sec_now - interval)}")
-                    if first_trx:
-                        logging.info(f"First Trans.: {first_trx}")
-                        logging.info(f"Next Run    : {next}")
-                        first_trx = False
-                        next = False
-                    continue
-
-                logging.info(f"First Trans.: {first_trx}")
-                logging.info("No Next Run : FALSE")
-
-                first_trx = False
-
-                if type == "SendTx" and float(amount) >= float(limit):
-                    logging.info("Rel. Type   : Yes")
-                    logging.info("Rel. Amount : Yes")
-
-                    to_exchange = True if to_addr == ex_addr else False
-                    logging.info(f"To Exchange : {to_exchange}")
-
-                    amm = int(float(amount))
-                    lnk = f"[Show Transaction Details]({trx_url + hash})"
-
-                    if to_exchange:
-                        adr = f"{from_addr[:8]}..."
-                        msg = f"`{amm:,}` DNA from #{adr} to {name}\n{lnk}"
+            if last_tx is None:
+                transactions.extend(response["result"])
+                next_run = False
+            else:
+                for tx in response["result"]:
+                    if tx["hash"] == last_tx:
+                        next_run = False
+                        break
                     else:
-                        adr = f"{to_addr[:8]}..."
-                        msg = f"`{amm:,}` DNA from {name} to #{adr}\n{lnk}"
-
-                    logging.info(f"Message     : {msg}")
-
-                    for chat_id in self.config.get("send_to"):
-                        try:
-                            bot.send_message(
-                                chat_id,
-                                msg,
-                                parse_mode=ParseMode.MARKDOWN,
-                                disable_web_page_preview=True,
-                                disable_notification=True)
-                        except Exception as e:
-                            msg = f"{emo.ERROR} Not possible to send whale alert: {e}"
-                            logging.error(msg)
-                            self.notify(msg)
-                else:
-                    logging.info(f"Transaction not relevant")
-                    logging.info(f"Trx. Type  : {type}")
-                    logging.info(f"Trx. Amount: {float(amount):.4f}")
+                        transactions.append(tx)
 
             skip += steps
+
+        # Analyse all relevant transactions
+        for tx in reversed(transactions):
+            amount = int(float(f"{float(tx['amount']):.1f}"))
+            type = tx["type"]
+            from_addr = tx["from"]
+            to_addr = tx["to"]
+            hash = tx["hash"]
+
+            if type == "SendTx" and amount >= int(threshold):
+                logging.info(f"FOUND: {tx}")
+
+                job.context["last"] = tx["hash"]
+
+                lnk = f"[Show Transaction Details]({tx_url + hash})"
+                to_exchange = True if to_addr == ex_addr else False
+
+                if to_exchange:
+                    adr = f"{from_addr[:8]}"
+                    msg = f"`{amount:,}` DNA from #{adr} to {name}\n{lnk}"
+                else:
+                    adr = f"{to_addr[:8]}"
+                    msg = f"`{amount:,}` DNA from {name} to #{adr}\n{lnk}"
+
+                for chat_id in self.config.get("notify"):
+                    try:
+                        bot.send_message(
+                            chat_id,
+                            msg,
+                            parse_mode=ParseMode.MARKDOWN,
+                            disable_web_page_preview=True,
+                            disable_notification=True)
+                    except Exception as e:
+                        msg = f"{emo.ERROR} Not possible to send whale alert: {e}"
+                        logging.error(msg)
+                        self.notify(msg)
 
     @IdenaPlugin.owner
     @IdenaPlugin.threaded
