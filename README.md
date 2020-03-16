@@ -91,6 +91,7 @@ which will kill __every__ Python 3.7 process that is currently running.
 ```
 /price - Show current price
 /chart - Show price chart
+/stats - Show general information
 ```
 
 If you want to show a list of available commands as you type, open a chat with Telegram bot [@BotFather](https://t.me/BotFather) and execute the command `/setcommands`. Then choose the bot you want to activate the list for and after that send the list of commands with description. Something like this:
@@ -98,4 +99,5 @@ If you want to show a list of available commands as you type, open a chat with T
 ```
 price - Show current price
 chart - Show price chart
+stats - Show general information
 ```
