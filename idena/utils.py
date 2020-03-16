@@ -27,8 +27,10 @@ def format(value,
 
     fiat = False
     if symbol and isinstance(symbol, str):
-        if symbol.lower() in get_fiat_list():
-            fiat = True
+        pass
+
+        #if symbol.lower() in get_fiat_list():
+            #fiat = True
 
     if value is None:
         return on_none
@@ -37,25 +39,25 @@ def format(value,
         if isinstance(value, str):
             value = value.replace(",", "")
         v = float(value)
-    except Exception:
+    except:
         return str(value)
 
     try:
         if isinstance(template, str):
             template = template.replace(",", "")
         t = float(template)
-    except Exception:
+    except:
         t = v
 
     try:
         decimals = int(decimals)
-    except Exception:
+    except:
         decimals = None
 
     try:
         if float(value) == 0:
             return on_zero
-    except Exception:
+    except:
         return str(value)
 
     if t < 1:
