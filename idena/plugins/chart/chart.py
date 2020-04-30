@@ -68,7 +68,7 @@ class Chart(IdenaPlugin):
             )
         )
 
-        margin_l = 140
+        margin_l = 130
         tickformat = "0.8f"
 
         max_value = df_price["Price"].max()
@@ -101,16 +101,24 @@ class Chart(IdenaPlugin):
                 t=100,
                 pad=4
             ),
+            xaxis=dict(
+                gridcolor="rgb(215, 215, 215)"
+            ),
             yaxis=dict(
-                domain=[0, 0.20]
+                domain=[0, 0.20],
+                gridcolor="rgb(215, 215, 215)",
+                zerolinecolor="rgb(233, 233, 233)"
             ),
             yaxis2=dict(
                 domain=[0.25, 1],
+                gridcolor="rgb(215, 215, 215)",
+                zerolinecolor="rgb(233, 233, 233)",
                 tickprefix="",
                 ticksuffix=""
             ),
             title=dict(
-                text=f"{info['symbol'].upper()} Price & Volume in {self.BASE.upper()}",
+                text=f"{info['symbol'].upper()}/{self.BASE.upper()}",
+                x=0.5,
                 font=dict(
                     size=24
                 )
@@ -120,7 +128,7 @@ class Chart(IdenaPlugin):
                 yanchor="top",
                 xanchor="center",
                 y=1.05,
-                x=0.45
+                x=0.445
             ),
             shapes=[{
                 "type": "line",
