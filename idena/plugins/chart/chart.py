@@ -3,6 +3,7 @@ import plotly
 import pandas as pd
 import plotly.io as pio
 import plotly.graph_objs as go
+import idena.constants as con
 import idena.emoji as emo
 
 from io import BytesIO
@@ -10,20 +11,21 @@ from pandas import DataFrame
 from telegram import ParseMode
 from pycoingecko import CoinGeckoAPI
 from idena.plugin import IdenaPlugin
+from datetime import datetime, timedelta
+from idena.coinpaprika import CoinPaprikaAPI
 
 
 class Chart(IdenaPlugin):
 
-    CGID = "idena"
-    BASE = "btc"
-
     def __enter__(self):
-        plotly.io.orca.ensure_server()
+        #plotly.io.orca.ensure_server()  # TODO
         return self
 
     @IdenaPlugin.threaded
     @IdenaPlugin.send_typing
     def execute(self, bot, update, args):
+        BASE = "btc"
+
         if args:
             if len(args) > 1:
                 update.message.reply_text(
@@ -40,13 +42,19 @@ class Chart(IdenaPlugin):
             time_frame = 3  # Days
 
         try:
-            info = CoinGeckoAPI().get_coin_by_id(self.CGID)
-            market = CoinGeckoAPI().get_coin_market_chart_by_id(self.CGID, self.BASE, time_frame)
+            info = CoinGeckoAPI().get_coin_by_id(con.CG_ID)
+
+            start = (datetime.today().replace(microsecond=0) - timedelta(days=time_frame)).isoformat()
+            tickers = CoinPaprikaAPI().get_historical_tickers(con.CP_ID, start=f"{start}Z", limit=5000, quote=BASE)
+            #ohlc = CoinPaprikaAPI().get_historical_ohlc(con.CP_ID, start=f"{start}Z", limit=366, quote="usd")
+            #market = CoinGeckoAPI().get_coin_market_chart_by_id(self.CGID, self.BASE, time_frame)
         except Exception as e:
             return self.notify(e)
 
+        print(tickers)
+
         # Volume
-        df_volume = DataFrame(market["total_volumes"], columns=["DateTime", "Volume"])
+        df_volume = DataFrame(tickers["volume_24h"], columns=["DateTime", "Volume"])
         df_volume["DateTime"] = pd.to_datetime(df_volume["DateTime"], unit="ms")
         volume = go.Scatter(
             x=df_volume.get("DateTime"),
@@ -55,7 +63,7 @@ class Chart(IdenaPlugin):
         )
 
         # Price
-        df_price = DataFrame(market["prices"], columns=["DateTime", "Price"])
+        df_price = DataFrame(tickers["price"], columns=["DateTime", "Price"])
         df_price["DateTime"] = pd.to_datetime(df_price["DateTime"], unit="ms")
         price = go.Scatter(
             x=df_price.get("DateTime"),
@@ -117,7 +125,7 @@ class Chart(IdenaPlugin):
                 ticksuffix=""
             ),
             title=dict(
-                text=f"{info['symbol'].upper()}/{self.BASE.upper()}",
+                text=f"{info['symbol'].upper()}/{BASE.upper()}",
                 x=0.5,
                 font=dict(
                     size=24
@@ -136,8 +144,8 @@ class Chart(IdenaPlugin):
                 "yref": "y2",
                 "x0": 0,
                 "x1": 1,
-                "y0": market["prices"][len(market["prices"]) - 1][1],
-                "y1": market["prices"][len(market["prices"]) - 1][1],
+                "y0": tickers["price"][len(tickers["price"]) - 1][1],
+                "y1": tickers["price"][len(tickers["price"]) - 1][1],
                 "line": {
                     "color": "rgb(50, 171, 96)",
                     "width": 1,
