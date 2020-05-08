@@ -1,7 +1,6 @@
 requests
 watchdog
 python-telegram-bot==11.1.0
-pycoingecko
 pandas
 plotly
 psutil
