@@ -3,8 +3,8 @@ import idena.emoji as emo
 import logging
 
 from telegram import ParseMode
-from pycoingecko import CoinGeckoAPI
 from idena.plugin import IdenaPlugin
+from idena.coinpaprika import CoinPaprikaAPI
 
 
 class Price(IdenaPlugin):
@@ -13,7 +13,7 @@ class Price(IdenaPlugin):
     @IdenaPlugin.send_typing
     def execute(self, bot, update, args):
         try:
-            result = CoinGeckoAPI().get_coin_ticker_by_id(con.CG_ID)
+            res = CoinPaprikaAPI().get_ticker(con.CP_ID, quotes="USD,EUR,BTC,ETH")
         except Exception as e:
             error = f"{emo.ERROR} Could not retrieve price"
             update.message.reply_text(error)
@@ -22,8 +22,8 @@ class Price(IdenaPlugin):
             return
 
         reply = "Price of DNA\n\n"
-        for target, price in result["tickers"][0]["converted_last"].items():
-            reply += f"{target.upper():<5}{price:.8f}\n"
+        for target, details in res["quotes"].items():
+            reply += f"{target.upper():<5}{details['price']:.8f}\n"
 
         cg_link = f"\n👉 https://idena.today 👈"
 
