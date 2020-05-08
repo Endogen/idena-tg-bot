@@ -18,6 +18,8 @@ class CoinPaprikaAPI:
         self.session.mount('http://', HTTPAdapter(max_retries=retries))
 
     def __request(self, url):
+        response = None
+
         try:
             response = self.session.get(url, timeout=self.request_timeout)
             response.raise_for_status()
@@ -47,6 +49,11 @@ class CoinPaprikaAPI:
         return self.__request(api_url)
 
     def get_historical_ohlc(self, coin_id, **kwargs):
-        api_url = f"{self.__API_URL_BASE}/coins/{coin_id}/ohlcv/historical"
+        api_url = f"{self.__API_URL_BASE}coins/{coin_id}/ohlcv/historical"
+        api_url = self.__api_url_params(api_url, kwargs)
+        return self.__request(api_url)
+
+    def get_historical_tickers(self, coin_id, **kwargs):
+        api_url = f"{self.__API_URL_BASE}tickers/{coin_id}/historical"
         api_url = self.__api_url_params(api_url, kwargs)
         return self.__request(api_url)
