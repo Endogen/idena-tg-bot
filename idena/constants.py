@@ -1,7 +1,9 @@
 import os
 
-# IDENA specific
+# CoinGecko ID
 CG_ID = "idena"
+# CoinPaprika ID
+CP_ID = "dna-idena"
 
 # Project folders
 DIR_SRC = os.path.basename(os.path.dirname(__file__))
