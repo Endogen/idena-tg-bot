@@ -89,6 +89,10 @@ class QtradeAPI:
             api_url = api_url[:-1]
         return api_url
 
+    def get_ticker(self, market):
+        api_url = f"{self.__API_URL_BASE}ticker/{market}"
+        return self.__request(api_url)
+
     def get_historical_ohlc(self, market, interval):
         api_url = f"{self.__API_URL_BASE}market/{market}/ohlcv/{interval}"
         return self.__request(api_url)
