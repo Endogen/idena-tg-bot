@@ -5,6 +5,7 @@ import logging
 from telegram import ParseMode
 from idena.plugin import IdenaPlugin
 from idena.coinpaprika import CoinPaprikaAPI
+from idena.qtrade import QtradeAPI, QtradeAuth
 
 
 class Price(IdenaPlugin):
@@ -12,6 +13,12 @@ class Price(IdenaPlugin):
     @IdenaPlugin.threaded
     @IdenaPlugin.send_typing
     def execute(self, bot, update, args):
+        if args[0].lower() == "qtrade":
+            qtrade = QtradeAPI(QtradeAuth("token"))
+            ticker = qtrade.get_ticker("DNA_BTC")
+            print(ticker)
+            return
+
         try:
             res = CoinPaprikaAPI().get_ticker(con.CP_ID, quotes="USD,EUR,BTC,ETH")
         except Exception as e:
