@@ -1,4 +1,5 @@
 import os
+import json
 import sqlite3
 import logging
 import inspect
@@ -292,6 +293,21 @@ class IdenaPlugin:
 
         con.close()
         return exists
+
+    def get_token(self, token_key):
+        token_path = os.path.join(c.DIR_CFG, c.FILE_TKN)
+
+        try:
+            if os.path.isfile(token_path):
+                with open(token_path, 'r') as file:
+                    return json.load(file)[token_key]
+            else:
+                logging.error(f"No token file '{c.FILE_TKN}' found at '{token_path}'")
+        except KeyError as e:
+            cls_name = f"Class: {type(self).__name__}"
+            logging.error(f"{repr(e)} - {cls_name}")
+
+        return None
 
     def get_name(self):
         """ Return the name of the current plugin """
