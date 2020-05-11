@@ -10,32 +10,44 @@ from idena.qtrade import QtradeAPI, QtradeAuth
 
 class Price(IdenaPlugin):
 
+    link = f"\n👉 https://idena.today 👈"
+    _market = "DNA_BTC"
+
     @IdenaPlugin.threaded
     @IdenaPlugin.send_typing
     def execute(self, bot, update, args):
-        if args[0].lower() == "qtrade":
-            qtrade = QtradeAPI(QtradeAuth("token"))
-            ticker = qtrade.get_ticker("DNA_BTC")
-            print(ticker)
-            return
+        if args and args[0].lower() == "qtrade":
+            try:
+                qtrade = QtradeAPI(QtradeAuth(self.get_token("qtrade")))
+                price = qtrade.get_ticker(self._market)["data"]["last"]
+            except Exception as e:
+                error = f"{emo.ERROR} Could not retrieve price"
+                update.message.reply_text(error)
+                logging.error(e)
+                self.notify(e)
+                return
 
-        try:
-            res = CoinPaprikaAPI().get_ticker(con.CP_ID, quotes="USD,EUR,BTC,ETH")
-        except Exception as e:
-            error = f"{emo.ERROR} Could not retrieve price"
-            update.message.reply_text(error)
-            logging.error(e)
-            self.notify(e)
-            return
+            base = self._market.split('_')[1].upper()
 
-        reply = "Price of DNA\n\n"
-        for target, details in res["quotes"].items():
-            reply += f"{target.upper():<5}{details['price']:.8f}\n"
+            msg = f"Price of DNA (qTrade)\n\n"
+            msg += f"{base:<5}{float(price):.8f}\n"
 
-        cg_link = f"\n👉 https://idena.today 👈"
+        else:
+            try:
+                res = CoinPaprikaAPI().get_ticker(con.CP_ID, quotes="USD,EUR,BTC,ETH")
+            except Exception as e:
+                error = f"{emo.ERROR} Could not retrieve price"
+                update.message.reply_text(error)
+                logging.error(e)
+                self.notify(e)
+                return
+
+            msg = "Price of DNA (CoinGecko)\n\n"
+            for target, details in res["quotes"].items():
+                msg += f"{target.upper():<5}{details['price']:.8f}\n"
 
         update.message.reply_text(
-            text=f"`{reply}`{cg_link}",
+            text=f"`{msg}`{self.link}",
             parse_mode=ParseMode.MARKDOWN,
             disable_web_page_preview=True,
             quote=False)
