@@ -1,6 +1,7 @@
 import time
 import json
 import base64
+import logging
 import requests
 import requests.auth
 
@@ -38,9 +39,9 @@ class QtradeAuth(requests.auth.AuthBase):
             request_details += "\n"
 
         request_details += self.key
-
         hsh = sha256(request_details.encode("utf8")).digest()
         signature = base64.b64encode(hsh)
+
         req.headers.update({
             "Authorization": "HMAC-SHA256 {}:{}".format(self.key_id, signature.decode("utf8")),
             "HMAC-Timestamp": timestamp
@@ -64,22 +65,15 @@ class QtradeAPI:
         self.session.mount('http://', HTTPAdapter(max_retries=retries))
 
     def __request(self, url):
-        response = None
+        logging.info(f"qTrade API Request: {url}")
 
         try:
             response = self.session.get(url, timeout=self.request_timeout)
             response.raise_for_status()
-            content = json.loads(response.content.decode('utf-8'))
-            return content
+
+            return json.loads(response.content.decode('utf-8'))
         except Exception as e:
-            try:
-                # check if json (with error message) is returned
-                content = json.loads(response.content.decode('utf-8'))
-                raise ValueError(content)
-            except json.decoder.JSONDecodeError:
-                # no json
-                pass
-            raise
+            logging.error(e)
 
     def __api_url_params(self, api_url, params):
         if params:
