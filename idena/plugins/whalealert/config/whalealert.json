@@ -5,7 +5,8 @@
     "threshold": 5000,
     "tx_count": 5,
     "exchanges": {
-        "qTrade": "0x83B8A2F9Bd1bE7f1fB496ec91eB0C6983cD38725"
+        "qTrade": "0x83B8A2F9Bd1bE7f1fB496ec91eB0C6983cD38725",
+        "Hotbit": "0x4E55380bD90b754615A779FC3C4cf949481875CB"
     },
     "ad_url": "https://api.idena.org/api/address/",
     "tx_url": "https://scan.idena.io/transaction/",
