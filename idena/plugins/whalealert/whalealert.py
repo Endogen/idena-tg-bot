@@ -19,6 +19,7 @@ class Whalealert(IdenaPlugin):
         tx_url = self.config.get("tx_url")
         interval = self.config.get("interval")
         exchanges = self.config.get("exchanges")
+        wallets = self.config.get("wallets")
 
         for name, address in exchanges.items():
             self.repeat_job(
@@ -32,7 +33,8 @@ class Whalealert(IdenaPlugin):
                     "api": ad_url,
                     "trx_url": tx_url,
                     "trx": tx_count,
-                    "last": None
+                    "last": None,
+                    "wallets": wallets
                 })
 
         return self
@@ -45,6 +47,7 @@ class Whalealert(IdenaPlugin):
         ex_addr = job.context["address"]
         threshold = job.context["threshold"]
         last_tx = job.context["last"]
+        wallets = job.context["wallets"]
 
         url += f"{ex_addr}/txs"
         transactions = list()
@@ -97,12 +100,21 @@ class Whalealert(IdenaPlugin):
                 lnk = f"[Show Transaction Details]({tx_url + hash})"
                 to_exchange = True if to_addr == ex_addr else False
 
+                def get_ident(address):
+                    for key, value in wallets.items():
+                        for v in value:
+                            if address.lower() == v.lower():
+                                return " (" + key + ")"
+                    return str()
+
                 if to_exchange:
                     adr = f"{from_addr[:8]}"
-                    msg = f"`{amount:,}` DNA from #{adr} to {name}\n{lnk}"
+                    ident = get_ident(from_addr)
+                    msg = f"`{amount:,}` DNA from #{adr}{ident} to {name}\n{lnk}"
                 else:
                     adr = f"{to_addr[:8]}"
-                    msg = f"`{amount:,}` DNA from {name} to #{adr}\n{lnk}"
+                    ident = get_ident(to_addr)
+                    msg = f"`{amount:,}` DNA from {name} to #{adr}{ident}\n{lnk}"
 
                 for chat_id in self.config.get("notify"):
                     try:
